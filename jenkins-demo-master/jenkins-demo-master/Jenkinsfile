@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    stages {
+        stage('build') {
+            agent { 
+                docker { 
+                    image 'maven:3-alpine'
+                    args '-v /root/.m2:/root/.m2' 
+                } 
+            }
+            steps {
+                sh 'mvn -B -DskipTests clean package'
+            }
+        }
+        stage('deploy to tomcat') {
+            steps {
+                sh 'pwd'
+                sh 'ls -l ./'
+                sshagent(credentials: ['deploy-manager']) {                
+                    sh "scp -o StrictHostKeyChecking=no ../hello-jenkins-demo@2/target/*.jar hadoopdev@211.197.18.246:/home/hadoopdev/"
+                }
+            }
+        }
+    }
+}
